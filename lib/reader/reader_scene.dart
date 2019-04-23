@@ -1,3 +1,4 @@
+import 'package:dcc/chinese_converter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -37,6 +38,8 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
 
   List<Chapter> chapters = [];
 
+  var shouldCC = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +56,8 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
 
   @override
   void didPop() {
-    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top, SystemUiOverlay.bottom]);
+    SystemChrome.setEnabledSystemUIOverlays(
+        [SystemUiOverlay.top, SystemUiOverlay.bottom]);
   }
 
   @override
@@ -97,7 +101,8 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
       pageIndex = currentArticle.pageCount - 1;
     }
     if (jumpType != PageJumpType.stay) {
-      pageController.jumpToPage((preArticle != null ? preArticle.pageCount : 0) + pageIndex);
+      pageController.jumpToPage(
+          (preArticle != null ? preArticle.pageCount : 0) + pageIndex);
     }
 
     setState(() {});
@@ -106,7 +111,8 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
   onScroll() {
     var page = pageController.offset / Screen.width;
 
-    var nextArtilePage = currentArticle.pageCount + (preArticle != null ? preArticle.pageCount : 0);
+    var nextArtilePage = currentArticle.pageCount +
+        (preArticle != null ? preArticle.pageCount : 0);
     if (page >= nextArtilePage) {
       print('到达下个章节了');
 
@@ -154,9 +160,15 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
 
   Future<Article> fetchArticle(int articleId) async {
     var article = await ArticleProvider.fetchArticle(articleId);
-    var contentHeight = Screen.height - topSafeHeight - ReaderUtils.topOffset - Screen.bottomSafeHeight - ReaderUtils.bottomOffset - 20;
+    var contentHeight = Screen.height -
+        topSafeHeight -
+        ReaderUtils.topOffset -
+        Screen.bottomSafeHeight -
+        ReaderUtils.bottomOffset -
+        20;
     var contentWidth = Screen.width - 15 - 10;
-    article.pageOffsets = ReaderPageAgent.getPageOffsets(article.content, contentHeight, contentWidth, ReaderConfig.instance.fontSize);
+    article.pageOffsets = ReaderPageAgent.getPageOffsets(article.content,
+        contentHeight, contentWidth, ReaderConfig.instance.fontSize);
 
     return article;
   }
@@ -164,7 +176,8 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
   onTap(Offset position) async {
     double xRate = position.dx / Screen.width;
     if (xRate > 0.33 && xRate < 0.66) {
-      SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top, SystemUiOverlay.bottom]);
+      SystemChrome.setEnabledSystemUIOverlays(
+          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
       setState(() {
         isMenuVisiable = true;
       });
@@ -189,20 +202,23 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
       Toast.show('已经是第一页了');
       return;
     }
-    pageController.previousPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
+    pageController.previousPage(
+        duration: Duration(milliseconds: 250), curve: Curves.easeOut);
   }
 
   nextPage() {
-    if (pageIndex >= currentArticle.pageCount - 1 && currentArticle.nextArticleId == 0) {
+    if (pageIndex >= currentArticle.pageCount - 1 &&
+        currentArticle.nextArticleId == 0) {
       Toast.show('已经是最后一页了');
       return;
     }
-    pageController.nextPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
+    pageController.nextPage(
+        duration: Duration(milliseconds: 250), curve: Curves.easeOut);
   }
 
   Widget buildPage(BuildContext context, int index) {
     var page = index - (preArticle != null ? preArticle.pageCount : 0);
-    var article;
+    Article article;
     if (page >= this.currentArticle.pageCount) {
       // 到达下一章了
       article = nextArticle;
@@ -215,11 +231,17 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
       article = this.currentArticle;
     }
 
+    var dcc = ChineseConverter.instance();
+    if (shouldCC) {
+      article.content = dcc.s2t(article.content);
+    }
+
     return GestureDetector(
       onTapUp: (TapUpDetails details) {
         onTap(details.globalPosition);
       },
-      child: ReaderView(article: article, page: page, topSafeHeight: topSafeHeight),
+      child: ReaderView(
+          article: article, page: page, topSafeHeight: topSafeHeight),
     );
   }
 
@@ -228,7 +250,9 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
       return Container();
     }
 
-    int itemCount = (preArticle != null ? preArticle.pageCount : 0) + currentArticle.pageCount + (nextArticle != null ? nextArticle.pageCount : 0);
+    int itemCount = (preArticle != null ? preArticle.pageCount : 0) +
+        currentArticle.pageCount +
+        (nextArticle != null ? nextArticle.pageCount : 0);
     return PageView.builder(
       physics: BouncingScrollPhysics(),
       controller: pageController,
@@ -255,6 +279,12 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
       onToggleChapter: (Chapter chapter) {
         resetContent(chapter.id, PageJumpType.firstPage);
       },
+      //簡繁轉換
+      onCC: () {
+        setState(() {
+          shouldCC = !shouldCC;
+        });
+      },
     );
   }
 
@@ -274,7 +304,12 @@ class ReaderSceneState extends State<ReaderScene> with RouteAware {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          Positioned(left: 0, top: 0, right: 0, bottom: 0, child: Image.asset('img/read_bg.png', fit: BoxFit.cover)),
+          Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: Image.asset('img/read_bg.png', fit: BoxFit.cover)),
           buildPageView(),
           buildMenu(),
         ],

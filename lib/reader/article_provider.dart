@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:shuqi/public.dart';
 
 class ArticleProvider {

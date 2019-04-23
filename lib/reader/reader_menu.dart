@@ -10,15 +10,24 @@ class ReaderMenu extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onPreviousArticle;
   final VoidCallback onNextArticle;
+  final VoidCallback onCC;
   final void Function(Chapter chapter) onToggleChapter;
 
-  ReaderMenu({this.chapters, this.articleIndex, this.onTap, this.onPreviousArticle, this.onNextArticle, this.onToggleChapter});
+  ReaderMenu(
+      {this.chapters,
+      this.articleIndex,
+      this.onTap,
+      this.onPreviousArticle,
+      this.onNextArticle,
+      this.onToggleChapter,
+      this.onCC});
 
   @override
   _ReaderMenuState createState() => _ReaderMenuState();
 }
 
-class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateMixin {
+class _ReaderMenuState extends State<ReaderMenu>
+    with SingleTickerProviderStateMixin {
   AnimationController animationController;
   Animation<double> animation;
 
@@ -29,8 +38,10 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
   initState() {
     super.initState();
 
-    progressValue = this.widget.articleIndex / (this.widget.chapters.length - 1);
-    animationController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    progressValue =
+        this.widget.articleIndex / (this.widget.chapters.length - 1);
+    animationController = AnimationController(
+        duration: const Duration(milliseconds: 200), vsync: this);
     animation = Tween(begin: 0.0, end: 1.0).animate(animationController);
     animation.addListener(() {
       setState(() {});
@@ -41,7 +52,8 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
   @override
   void didUpdateWidget(ReaderMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
-    progressValue = this.widget.articleIndex / (this.widget.chapters.length - 1);
+    progressValue =
+        this.widget.articleIndex / (this.widget.chapters.length - 1);
   }
 
   @override
@@ -66,7 +78,8 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
       left: 0,
       right: 0,
       child: Container(
-        decoration: BoxDecoration(color: SQColor.paper, boxShadow: Styles.borderShadow),
+        decoration:
+            BoxDecoration(color: SQColor.paper, boxShadow: Styles.borderShadow),
         height: Screen.navigationBarHeight,
         padding: EdgeInsets.fromLTRB(5, Screen.topSafeHeight, 5, 0),
         child: Row(
@@ -81,6 +94,10 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
               ),
             ),
             Expanded(child: Container()),
+            MaterialButton(
+              onPressed: this.widget.onCC,
+              child: Text('簡繁轉換'),
+            ),
             Container(
               width: 44,
               child: Image.asset('img/read_icon_voice.png'),
@@ -106,14 +123,17 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
     Chapter chapter = this.widget.chapters[currentArticleIndex()];
     double percentage = chapter.index / (this.widget.chapters.length - 1) * 100;
     return Container(
-      decoration: BoxDecoration(color: Color(0xff00C88D), borderRadius: BorderRadius.circular(5)),
+      decoration: BoxDecoration(
+          color: Color(0xff00C88D), borderRadius: BorderRadius.circular(5)),
       margin: EdgeInsets.fromLTRB(15, 0, 15, 10),
       padding: EdgeInsets.all(15),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(chapter.title, style: TextStyle(color: Colors.white, fontSize: 16)),
-          Text('${percentage.toStringAsFixed(1)}%', style: TextStyle(color: SQColor.lightGray, fontSize: 12)),
+          Text(chapter.title,
+              style: TextStyle(color: Colors.white, fontSize: 16)),
+          Text('${percentage.toStringAsFixed(1)}%',
+              style: TextStyle(color: SQColor.lightGray, fontSize: 12)),
         ],
       ),
     );
@@ -191,7 +211,8 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
         children: <Widget>[
           buildProgressTipView(),
           Container(
-            decoration: BoxDecoration(color: SQColor.paper, boxShadow: Styles.borderShadow),
+            decoration: BoxDecoration(
+                color: SQColor.paper, boxShadow: Styles.borderShadow),
             padding: EdgeInsets.only(bottom: Screen.bottomSafeHeight),
             child: Column(
               children: <Widget>[
@@ -224,7 +245,9 @@ class _ReaderMenuState extends State<ReaderMenu> with SingleTickerProviderStateM
         children: <Widget>[
           Image.asset(icon),
           SizedBox(height: 5),
-          Text(title, style: TextStyle(fontSize: fixedFontSize(12), color: SQColor.darkGray)),
+          Text(title,
+              style: TextStyle(
+                  fontSize: fixedFontSize(12), color: SQColor.darkGray)),
         ],
       ),
     );
