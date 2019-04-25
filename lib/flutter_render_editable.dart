@@ -1509,6 +1509,8 @@ class FlutterRenderEditable extends RenderBox {
       _paintSelection(context.canvas, effectiveOffset);
     }
 
+    onPaintContent(this, context.canvas);
+
     // On iOS, the cursor is painted over the text, on Android, it's painted
     // under it.
     if (paintCursorAboveText)
@@ -1526,12 +1528,10 @@ class FlutterRenderEditable extends RenderBox {
             context.canvas, effectiveOffset, _floatingCursorTextPosition);
       _paintFloatingCaret(context.canvas, _floatingCursorOffset);
     }
-
-    onPaintContent(this, context.canvas);
   }
 
   List<TextBox> getBoxesForSelection(TextSelection selection) {
-    return _textPainter.getBoxesForSelection(_selection);
+    return _textPainter.getBoxesForSelection(selection);
   }
 
   void _drawBackgroundColorForSelection(List<TextSelection> selections) {}

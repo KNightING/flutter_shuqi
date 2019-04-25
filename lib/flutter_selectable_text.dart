@@ -336,6 +336,25 @@ class _EditableText extends FlutterEditableText {
           paintCursorAboveText: paintCursorAboveText,
           dragStartBehavior: dragStartBehavior,
           enableInteractiveSelection: enableInteractiveSelection,
+          onPaintContent: (FlutterRenderEditable renderObject, Canvas canvas) {
+            var list = renderObject.getBoxesForSelection(
+                TextSelection(baseOffset: 0, extentOffset: 30));
+            list.forEach((textBox) {
+              canvas.drawRect(textBox.toRect(), Paint()..color = Color.fromARGB(200, 220, 200, 100));
+            });
+
+            list = renderObject.getBoxesForSelection(
+                TextSelection(baseOffset: 20, extentOffset: 25));
+            list.forEach((textBox) {
+              canvas.drawRect(textBox.toRect(), Paint()..color = Color.fromARGB(100, 200, 90, 155));
+            });
+
+             list = renderObject.getBoxesForSelection(
+                TextSelection(baseOffset: 20, extentOffset: 30));
+            list.forEach((textBox) {
+              canvas.drawRect(textBox.toRect(), Paint()..color = Color.fromARGB(100, 100, 30, 155));
+            });
+          },
         );
 
   _EditableTextState createState() => _EditableTextState();
@@ -355,25 +374,25 @@ class _EditableTextState extends FlutterEditableTextState {
     widget.controller.value = value;
   }
 
-  @override
-  TextSpan buildTextSpan() {
-//    super.buildTextSpan();
-
-    int half = _value.text.length ~/ 2;
-    String a = _value.text.substring(0, half);
-    String b = _value.text.substring(half);
-
-    TextSpan as = TextSpan(
-        style: TextStyle(
-          fontSize: 25,
-          color: Colors.blue,
-          background: Paint()..color = Colors.purple,
-        ),
-        text: a);
-    TextSpan bs = TextSpan(style: TextStyle(color: Colors.green), text: b);
-
-    return TextSpan(style: widget.style, children: [as, bs]);
-  }
+//  @override
+//  TextSpan buildTextSpan() {
+////    super.buildTextSpan();
+//
+//    int half = _value.text.length ~/ 2;
+//    String a = _value.text.substring(0, half);
+//    String b = _value.text.substring(half);
+//
+//    TextSpan as = TextSpan(
+//        style: TextStyle(
+//          fontSize: 25,
+//          color: Colors.blue,
+//          background: Paint()..color = Colors.purple,
+//        ),
+//        text: a);
+//    TextSpan bs = TextSpan(style: TextStyle(color: Colors.green), text: b);
+//
+//    return TextSpan(style: widget.style, children: [as, bs]);
+//  }
 
   @override
   Widget build(BuildContext context) {
