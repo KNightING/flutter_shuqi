@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:shuqi/flutter_editable_text.dart';
+import 'package:shuqi/flutter_render_editable.dart';
 
 /// InputlessFocusNode is a FocusNode that does not consume the keyboard token,
 /// thereby preventing the keyboard from coming up when the node is focused
@@ -41,9 +43,27 @@ class SelectableText extends StatefulWidget {
       this.dragStartBehavior = DragStartBehavior.down,
       this.enableInteractiveSelection = true,
       this.onTap})
-      : super(key: key);
+      : assert(text != null),
+        textSpan = null,
+        super(key: key);
+
+  const SelectableText.rich(this.textSpan,
+      {Key key,
+      this.focusNode,
+      this.style,
+      this.textAlign = TextAlign.start,
+      this.textDirection,
+      this.cursorRadius,
+      this.cursorColor,
+      this.dragStartBehavior = DragStartBehavior.down,
+      this.enableInteractiveSelection = true,
+      this.onTap})
+      : assert(textSpan != null),
+        text = null,
+        super(key: key);
 
   final String text;
+  final TextSpan textSpan;
   final InputlessFocusNode focusNode;
   final TextStyle style;
   final TextAlign textAlign;
@@ -58,10 +78,10 @@ class SelectableText extends StatefulWidget {
 }
 
 class SelectableTextState extends State<SelectableText> {
-  final GlobalKey<EditableTextState> _editableTextKey =
-      GlobalKey<EditableTextState>();
+  final GlobalKey<_EditableTextState> _editableTextKey =
+      GlobalKey<_EditableTextState>();
 
-  TextEditingController _controller;
+  FlutterTextEditingController _controller;
 
   InputlessFocusNode _focusNode;
 
@@ -71,8 +91,7 @@ class SelectableTextState extends State<SelectableText> {
   @override
   void initState() {
     super.initState();
-
-    _controller = TextEditingController(text: widget.text);
+    _controller = FlutterTextEditingController(text: widget.text);
   }
 
   @override
@@ -85,7 +104,7 @@ class SelectableTextState extends State<SelectableText> {
     super.dispose();
   }
 
-  RenderEditable get _renderEditable =>
+  FlutterRenderEditable get _renderEditable =>
       _editableTextKey.currentState.renderEditable;
 
   TextSelection get selection => _renderEditable.selection;
@@ -274,7 +293,7 @@ class SelectableTextState extends State<SelectableText> {
 /// 2) When the selection toolbar does a copy or paste operation, it then calls
 /// hideToolbar() on the EditableTextState, but that method doesn't unfocus our node
 /// so we do
-class _EditableText extends EditableText {
+class _EditableText extends FlutterEditableText {
   _EditableText({
     Key key,
     @required TextEditingController controller,
@@ -322,12 +341,38 @@ class _EditableText extends EditableText {
   _EditableTextState createState() => _EditableTextState();
 }
 
-class _EditableTextState extends EditableTextState {
+class _EditableTextState extends FlutterEditableTextState {
   @override
   void hideToolbar() {
     // unfocus our node instead of just hiding the toolbar because we don't
     // want to keep focus anymore
     widget.focusNode.unfocus();
+  }
+
+  TextEditingValue get _value => widget.controller.value;
+
+  set _value(TextEditingValue value) {
+    widget.controller.value = value;
+  }
+
+  @override
+  TextSpan buildTextSpan() {
+//    super.buildTextSpan();
+
+    int half = _value.text.length ~/ 2;
+    String a = _value.text.substring(0, half);
+    String b = _value.text.substring(half);
+
+    TextSpan as = TextSpan(
+        style: TextStyle(
+          fontSize: 25,
+          color: Colors.blue,
+          background: Paint()..color = Colors.purple,
+        ),
+        text: a);
+    TextSpan bs = TextSpan(style: TextStyle(color: Colors.green), text: b);
+
+    return TextSpan(style: widget.style, children: [as, bs]);
   }
 
   @override

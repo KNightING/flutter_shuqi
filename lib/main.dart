@@ -9,9 +9,7 @@ import 'package:dcc/chinese_converter.dart';
 void main() {
   runApp(AppScene());
 
-  ChineseConverter.withReady(() {
-    print('OKOKOK!!!');
-  });
+  ChineseConverter.instance();
 
   if (Platform.isAndroid) {
     SystemUiOverlayStyle systemUiOverlayStyle =
