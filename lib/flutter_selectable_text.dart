@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:shuqi/flutter_editable_text.dart';
 import 'package:shuqi/flutter_render_editable.dart';
+import 'package:shuqi/ios_mark_text_selection_controls.dart';
+import 'package:shuqi/mark_text_selection_controls.dart';
 
 /// InputlessFocusNode is a FocusNode that does not consume the keyboard token,
 /// thereby preventing the keyboard from coming up when the node is focused
@@ -87,6 +89,8 @@ class SelectableTextState extends State<SelectableText> {
 
   InputlessFocusNode get _effectiveFocusNode =>
       widget.focusNode ?? (_focusNode ??= InputlessFocusNode());
+
+  List<TextSelection> _textSelections = List();
 
   @override
   void initState() {
@@ -185,6 +189,23 @@ class SelectableTextState extends State<SelectableText> {
     }
   }
 
+  void handleMark(TextSelection selection) {
+    this.selection = null;
+    setState(() {
+      _textSelections.add(selection);
+    });
+  }
+
+  void onPaintContent(FlutterRenderEditable renderObject, Canvas canvas) {
+    _textSelections.forEach((textSelection) {
+      var boxs = renderObject.getBoxesForSelection(textSelection);
+      boxs.forEach((textBox) {
+        canvas.drawRect(textBox.toRect(),
+            Paint()..color = Color.fromARGB(125, 200, 200, 100));
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMaterial(context));
@@ -211,8 +232,11 @@ class SelectableTextState extends State<SelectableText> {
 
     switch (themeData.platform) {
       case TargetPlatform.iOS:
-        textSelectionControls =
-            _TextSelectionControls(cupertinoTextSelectionControls);
+        textSelectionControls = _TextSelectionControls(
+            CupertinoMarkTextSelectionControls(handleMark: handleMark));
+
+//        textSelectionControls =
+//            _TextSelectionControls(cupertinoTextSelectionControls);
         paintCursorAboveText = true;
         cursorOpacityAnimates = true;
         cursorColor ??= CupertinoTheme.of(context).primaryColor;
@@ -230,8 +254,11 @@ class SelectableTextState extends State<SelectableText> {
 
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
-        textSelectionControls =
-            _TextSelectionControls(materialTextSelectionControls);
+        textSelectionControls = _TextSelectionControls(
+            MaterialMarkTextSelectionControls(handleMark: handleMark));
+
+//        textSelectionControls =
+//            _TextSelectionControls(materialTextSelectionControls);
         paintCursorAboveText = false;
         cursorOpacityAnimates = false;
         cursorColor ??= themeData.cursorColor;
@@ -261,6 +288,7 @@ class SelectableTextState extends State<SelectableText> {
         backgroundCursorColor: CupertinoColors.inactiveGray,
         enableInteractiveSelection: widget.enableInteractiveSelection,
         dragStartBehavior: widget.dragStartBehavior,
+        onPaintContent: onPaintContent,
       ),
     );
 
@@ -315,6 +343,7 @@ class _EditableText extends FlutterEditableText {
     bool paintCursorAboveText = false,
     DragStartBehavior dragStartBehavior = DragStartBehavior.down,
     bool enableInteractiveSelection,
+    this.onPaintContent,
   }) : super(
           key: key,
           controller: controller,
@@ -336,28 +365,11 @@ class _EditableText extends FlutterEditableText {
           paintCursorAboveText: paintCursorAboveText,
           dragStartBehavior: dragStartBehavior,
           enableInteractiveSelection: enableInteractiveSelection,
-          onPaintContent: (FlutterRenderEditable renderObject, Canvas canvas) {
-            var list = renderObject.getBoxesForSelection(
-                TextSelection(baseOffset: 0, extentOffset: 30));
-            list.forEach((textBox) {
-              canvas.drawRect(textBox.toRect(), Paint()..color = Color.fromARGB(200, 220, 200, 100));
-            });
-
-            list = renderObject.getBoxesForSelection(
-                TextSelection(baseOffset: 20, extentOffset: 25));
-            list.forEach((textBox) {
-              canvas.drawRect(textBox.toRect(), Paint()..color = Color.fromARGB(100, 200, 90, 155));
-            });
-
-             list = renderObject.getBoxesForSelection(
-                TextSelection(baseOffset: 20, extentOffset: 30));
-            list.forEach((textBox) {
-              canvas.drawRect(textBox.toRect(), Paint()..color = Color.fromARGB(100, 100, 30, 155));
-            });
-          },
+          onPaintContent: onPaintContent,
         );
 
   _EditableTextState createState() => _EditableTextState();
+  final PaintContentHandler onPaintContent;
 }
 
 class _EditableTextState extends FlutterEditableTextState {
